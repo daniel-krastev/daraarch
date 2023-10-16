@@ -1,0 +1,55 @@
+version: '3.1'
+services:
+  # MySQL database service for WordPress
+  db:
+    image: mysql:8.1.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+    volumes:
+      - db_data:/var/lib/mysql
+    secrets:
+      - db_root_password
+      - db_password
+
+  # WordPress service
+  wordpress:
+    image: wordpress:6.3.2-apache
+    depends_on:
+      - db
+    extra_hosts:
+      - localhost:172.20.0.1
+    ports:
+      - "8080:80"
+    volumes:
+      - wordpress_data:/var/www/html
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+
+  # PHPMyAdmin service for database management
+  phpmyadmin:
+    image: phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_ARBITRARY: 1
+    links:
+      - db:db
+
+secrets:
+   db_password:
+     file: .DB_PASSWORD
+   db_root_password:
+     file: .DB_ROOT_PASSWORD
+
+volumes:
+  db_data:
+  wordpress_data:
