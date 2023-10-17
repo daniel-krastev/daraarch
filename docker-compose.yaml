@@ -14,6 +14,9 @@ services:
     secrets:
       - db_root_password
       - db_password
+    networks:
+      wp-net:
+        ipv4_address: 10.5.0.5
 
   # WordPress service
   wordpress:
@@ -21,7 +24,7 @@ services:
     depends_on:
       - db
     extra_hosts:
-      - localhost:172.20.0.1
+      - localhost:10.5.0.1
     ports:
       - "8080:80"
     volumes:
@@ -33,6 +36,9 @@ services:
       WORDPRESS_DB_PASSWORD_FILE: /run/secrets/db_password
     secrets:
       - db_password
+    networks:
+      wp-net:
+        ipv4_address: 10.5.0.6
 
   # PHPMyAdmin service for database management
   phpmyadmin:
@@ -43,6 +49,9 @@ services:
       PMA_ARBITRARY: 1
     links:
       - db:db
+    networks:
+      wp-net:
+        ipv4_address: 10.5.0.7
 
 secrets:
    db_password:
@@ -53,3 +62,10 @@ secrets:
 volumes:
   db_data:
   wordpress_data:
+
+networks:
+  wp-net:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.5.0.0/16
